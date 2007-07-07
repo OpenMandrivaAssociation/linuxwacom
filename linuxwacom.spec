@@ -1,5 +1,5 @@
-%define version  0.7.6_4
-%define fversion 0.7.6-4
+%define version  0.7.8
+%define fversion 0.7.8
 %define fname    %{name}-%{fversion}
 %define raw_libname wacom
 %define libname  %mklibname %raw_libname 0
@@ -55,7 +55,7 @@ echo "int main(void) { return ! (sizeof(void *) == 8); }" | %__cc -xc -o test64 
 ./test64 && XServer64="--enable-xserver64"
 rm -f test64
 
-%configure --with-xorg-sdk=/usr --with-xlib=%{_libdir} --enable-dlloader $XServer64
+%configure2_5x --with-xorg-sdk=/usr --with-xlib=%{_libdir} --enable-dlloader $XServer64
 
 export CFLAGS="$RPM_OPT_FLAGS"
 %make
