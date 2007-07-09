@@ -20,12 +20,11 @@ License: LGPL
 Group:   System/X11
 URL:     http://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
+# (fc) 0.7.8-2mdv fix lib64 issue
+Patch0:  linuxwacom-0.7.8-lib64.patch
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
 BuildRequires: tcl-devel tk-devel
-# RH patches:
-#Patch2:  linuxwacom-fsp.patch
-#Patch4:  linuxwacom-0.7.2-delibcwrap.patch
 
 %description 
 X.org XInput drivers, diagnostic tools and documentation for configuring
@@ -64,9 +63,10 @@ for latest Wacom tablets.
 
 %prep
 %setup -q -n %{fname}
+%patch0 -p1 -b .lib64
 
-#%patch2 -p1 -b .fsp
-#%patch4 -p0 -b .delibcwrap
+#needed by patch0
+autoconf
 
 %build
 # determine whether we are on 64-bit platforms
