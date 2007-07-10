@@ -11,24 +11,35 @@
 %define build_dkms 1
 %endif
 
-
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 2
+Release: %mkrel 3
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
 URL:     http://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
+# create additional symlinks (Debian) and ensure wacom module is loaded before usbmouse
+Source1: 41-wacom.rules
 # (fc) 0.7.8-2mdv fix lib64 issue
 Patch0:  linuxwacom-0.7.8-lib64.patch
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
-BuildRequires: tcl-devel tk-devel
 
 %description 
 X.org XInput drivers, diagnostic tools and documentation for configuring
 and running Wacom tablets.
+
+%package controlpanel
+Summary: Wacom Control Panel
+Group:   System/X11
+Requires: %{name} = %{version}
+Requires: tcl
+Requires: tk
+BuildRequires: tcl-devel tk-devel
+
+%description controlpanel
+Control Panel for Wacom tablets.
 
 %package -n %libname
 Summary: Wacom Drivers
@@ -42,7 +53,6 @@ Libraries for managing the Wacom tablets.
 Summary: Development libraries and header files for linuxwacom 
 Group: Development/C
 Requires: %{libname} = %{version}
-#Requires: lib%{raw_libname} = %{version}
 Provides: lib%{raw_libname}-devel = %{version}
 
 %description -n %libname-devel
@@ -85,6 +95,8 @@ export CFLAGS="$RPM_OPT_FLAGS"
 rm -rf $RPM_BUILD_ROOT
 
 %makeinstall_std x86moduledir=%{_libdir}/xorg/modules/input
+
+%__install -D -m644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/41-wacom.rules
 rm -f  $RPM_BUILD_ROOT%{_libdir}/*.la
 rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/TkXInput/%{*.a,la}
 
@@ -102,12 +114,32 @@ AUTOINSTALL=yes
 EOF
 %endif
 
+#menu entry
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
+cat << EOF > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-wacomcpl.desktop
+[Desktop Entry]
+Encoding=UTF-8
+Categories=System;HardwareSettings;X-MandrivaLinux-System-Configuration-Hardware;
+Name=Wacom Control Panel
+Comment=Configuration tool for Wacom tablets
+Exec=wacomcpl
+Icon=hardware_configuration_section.png
+Type=Application
+Terminal=false
+EOF
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post   -n %libname -p /sbin/ldconfig
 
 %postun -n %libname -p /sbin/ldconfig
+
+%post controlpanel
+%{update_desktop_database}
+
+%postun controlpanel
+%{clean_desktop_database}
 
 %if %{build_dkms}
 %post -n dkms-wacom
@@ -126,10 +158,17 @@ set -x
 %files 
 %defattr(-,root,root,-)
 %doc AUTHORS ChangeLog NEWS
+%config(noreplace) %{_sysconfdir}/udev/rules.d/41-wacom.rules
 %{_libdir}/xorg/modules/input/wacom_drv.*o
-%{_libdir}/TkXInput
-%{_bindir}/*
+%{_bindir}/*dump
+%{_bindir}/xsetwacom
 %{_mandir}/man4/*.bz2
+
+%files controlpanel
+%defattr(-,root,root,-)
+%{_bindir}/wacomcpl*
+%{_datadir}/applications/*
+%{_libdir}/TkXInput
 
 %files -n %libname
 %defattr(-,root,root,-)
