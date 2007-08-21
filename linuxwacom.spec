@@ -1,5 +1,5 @@
 %define version  0.7.8
-%define fversion 0.7.8
+%define fversion 0.7.8-3
 %define fname    %{name}-%{fversion}
 %define raw_libname wacom
 %define libname  %mklibname %raw_libname 0
@@ -13,7 +13,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 3
+Release: %mkrel 4
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -162,7 +162,7 @@ set -x
 %{_libdir}/xorg/modules/input/wacom_drv.*o
 %{_bindir}/*dump
 %{_bindir}/xsetwacom
-%{_mandir}/man4/*.bz2
+%{_mandir}/man4/*
 
 %files controlpanel
 %defattr(-,root,root,-)
