@@ -118,7 +118,6 @@ EOF
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
 cat << EOF > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-wacomcpl.desktop
 [Desktop Entry]
-Encoding=UTF-8
 Categories=System;HardwareSettings;X-MandrivaLinux-System-Configuration-Hardware;
 Name=Wacom Control Panel
 Comment=Configuration tool for Wacom tablets
