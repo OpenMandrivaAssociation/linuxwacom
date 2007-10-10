@@ -122,7 +122,7 @@ Categories=System;HardwareSettings;X-MandrivaLinux-System-Configuration-Hardware
 Name=Wacom Control Panel
 Comment=Configuration tool for Wacom tablets
 Exec=wacomcpl
-Icon=hardware_configuration_section.png
+Icon=hardware_configuration_section
 Type=Application
 Terminal=false
 EOF
