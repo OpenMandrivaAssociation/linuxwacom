@@ -29,7 +29,7 @@ Patch3:	 linuxwacom-0.7.8-scale.patch
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
 BuildRequires: kernel-source
-BuildRequires: libpixman-devel
+BuildRequires: pixman-devel
 
 %description 
 X.org XInput drivers, diagnostic tools and documentation for configuring
