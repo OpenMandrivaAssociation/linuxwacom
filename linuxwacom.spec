@@ -13,7 +13,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 4
+Release: %mkrel 5
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -23,8 +23,13 @@ Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
 Source1: 41-wacom.rules
 # (fc) 0.7.8-2mdv fix lib64 issue
 Patch0:  linuxwacom-0.7.8-lib64.patch
+Patch1:	 linuxwacom-0.7.8-xorg7.3-fix.patch
+Patch3:	 linuxwacom-0.7.8-scale.patch
+
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
+BuildRequires: kernel-source
+BuildRequires: libpixman-devel
 
 %description 
 X.org XInput drivers, diagnostic tools and documentation for configuring
@@ -74,6 +79,8 @@ for latest Wacom tablets.
 %prep
 %setup -q -n %{fname}
 %patch0 -p1 -b .lib64
+%patch1 -p1 -b .xorg7.3
+%patch3 -p1 -b .scale
 
 #needed by patch0
 autoconf
@@ -89,7 +96,7 @@ rm -f test64
 %configure2_5x --with-xorg-sdk=/usr --with-xlib=%{_libdir} --enable-dlloader $XServer64
 
 export CFLAGS="$RPM_OPT_FLAGS"
-%make
+%make CFLAGS+="-I%{_includedir}/pixman-1 -fno-stack-protector"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -118,11 +125,12 @@ EOF
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
 cat << EOF > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-wacomcpl.desktop
 [Desktop Entry]
+Encoding=UTF-8
 Categories=System;HardwareSettings;X-MandrivaLinux-System-Configuration-Hardware;
 Name=Wacom Control Panel
 Comment=Configuration tool for Wacom tablets
 Exec=wacomcpl
-Icon=hardware_configuration_section
+Icon=hardware_configuration_section.png
 Type=Application
 Terminal=false
 EOF
