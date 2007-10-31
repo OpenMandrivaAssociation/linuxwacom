@@ -1,5 +1,5 @@
-%define version  0.7.8
-%define fversion 0.7.8-3
+%define version  0.7.9
+%define fversion 0.7.9-1
 %define fname    %{name}-%{fversion}
 %define raw_libname wacom
 %define libname  %mklibname %raw_libname 0
@@ -13,7 +13,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 5
+Release: %mkrel 1
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -23,8 +23,6 @@ Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
 Source1: 41-wacom.rules
 # (fc) 0.7.8-2mdv fix lib64 issue
 Patch0:  linuxwacom-0.7.8-lib64.patch
-Patch1:	 linuxwacom-0.7.8-xorg7.3-fix.patch
-Patch3:	 linuxwacom-0.7.8-scale.patch
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
@@ -79,8 +77,6 @@ for latest Wacom tablets.
 %prep
 %setup -q -n %{fname}
 %patch0 -p1 -b .lib64
-%patch1 -p1 -b .xorg7.3
-%patch3 -p1 -b .scale
 
 #needed by patch0
 autoconf
