@@ -24,7 +24,6 @@ Source1: 41-wacom.rules
 # (fc) 0.7.8-2mdv fix lib64 issue
 Patch0:  linuxwacom-0.7.8-lib64.patch
 
-BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
 BuildRequires: kernel-source
 BuildRequires: pixman-devel
