@@ -1,5 +1,5 @@
 %define version  0.7.9
-%define fversion 0.7.9-1
+%define fversion 0.7.9-6
 %define fname    %{name}-%{fversion}
 %define raw_libname wacom
 %define libname  %mklibname %raw_libname 0
@@ -13,7 +13,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 2
+Release: %mkrel 3
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -21,13 +21,15 @@ URL:     http://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
 # create additional symlinks (Debian) and ensure wacom module is loaded before usbmouse
 Source1: 41-wacom.rules
-# (fc) 0.7.8-2mdv fix lib64 issue
-Patch0:  linuxwacom-0.7.8-lib64.patch
+# (fc) 0.7.9-3mdv no longer requires kernel source installed (GIT)
+Patch0:	linuxwacom-0.7.9-nokernelneeded.patch
+# (fc) 0.7.9-3mdv init keystruct once (GIT)
+Patch1: linuxwacom-0.7.9-initkeyonce.patch
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
-BuildRequires: kernel-source
-BuildRequires: pixman-devel
+# needed for detection of input module path 
+BuildRequires: x11-driver-input-mouse
 
 %description 
 X.org XInput drivers, diagnostic tools and documentation for configuring
@@ -76,28 +78,21 @@ for latest Wacom tablets.
 
 %prep
 %setup -q -n %{fname}
-%patch0 -p1 -b .lib64
+%patch0 -p1 -b .nokernelneeded
+%patch1 -p1 -b .initkeyonce
 
 #needed by patch0
 autoconf
 
 %build
-# determine whether we are on 64-bit platforms
-# XXX their test is not fully correct because it assumes 64-bit
-# platforms are lib64 (which is also a required check)
-echo "int main(void) { return ! (sizeof(void *) == 8); }" | %__cc -xc -o test64 -
-./test64 && XServer64="--enable-xserver64"
-rm -f test64
+%configure2_5x 
 
-%configure2_5x --with-xorg-sdk=/usr --with-xlib=%{_libdir} --enable-dlloader $XServer64
-
-export CFLAGS="$RPM_OPT_FLAGS"
-%make CFLAGS+="-I%{_includedir}/pixman-1 -fno-stack-protector"
+%make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%makeinstall_std x86moduledir=%{_libdir}/xorg/modules/input
+%makeinstall_std 
 
 %__install -D -m644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/41-wacom.rules
 rm -f  $RPM_BUILD_ROOT%{_libdir}/*.la
