@@ -1,5 +1,5 @@
 %define version  0.7.9
-%define fversion 0.7.9-6
+%define fversion 0.7.9-8
 %define fname    %{name}-%{fversion}
 %define raw_libname wacom
 %define libname  %mklibname %raw_libname 0
@@ -13,7 +13,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 3
+Release: %mkrel 4
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -21,10 +21,6 @@ URL:     http://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
 # create additional symlinks (Debian) and ensure wacom module is loaded before usbmouse
 Source1: 41-wacom.rules
-# (fc) 0.7.9-3mdv no longer requires kernel source installed (GIT)
-Patch0:	linuxwacom-0.7.9-nokernelneeded.patch
-# (fc) 0.7.9-3mdv init keystruct once (GIT)
-Patch1: linuxwacom-0.7.9-initkeyonce.patch
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
@@ -78,11 +74,6 @@ for latest Wacom tablets.
 
 %prep
 %setup -q -n %{fname}
-%patch0 -p1 -b .nokernelneeded
-%patch1 -p1 -b .initkeyonce
-
-#needed by patch0
-autoconf
 
 %build
 %configure2_5x 
