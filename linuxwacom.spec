@@ -13,7 +13,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 1
+Release: %mkrel 2
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -89,7 +89,7 @@ autoreconf -i
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%makeinstall_std 
+%makeinstall_std tcllibdir=%{tcl_sitearch}/TkXInput
 
 %__install -D -m644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/41-wacom.rules
 rm -f  $RPM_BUILD_ROOT%{_libdir}/*.la
@@ -167,7 +167,7 @@ set -x
 %defattr(-,root,root,-)
 %{_bindir}/wacomcpl*
 %{_datadir}/applications/*
-%{_libdir}/TkXInput
+%{tcl_sitearch}/TkXInput
 
 %files -n %libname
 %defattr(-,root,root,-)
