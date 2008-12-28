@@ -1,8 +1,10 @@
-%define version  0.8.0
-%define fversion 0.8.0-3
+%define version  0.8.2
+%define fversion 0.8.2
 %define fname    %{name}-%{fversion}
+%define major 0
 %define raw_libname wacom
-%define libname  %mklibname %raw_libname 0
+%define libname  %mklibname %{raw_libname} %{major}
+%define develname %mklibname -d %{raw_libname}
 
 %define build_dkms 0
 %{?_with_dkms: %global build_dkms 1}
@@ -13,7 +15,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 2
+Release: %mkrel 1
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -44,21 +46,22 @@ BuildRequires: tcl-devel tk-devel
 %description controlpanel
 Control Panel for Wacom tablets.
 
-%package -n %libname
+%package -n %{libname}
 Summary: Wacom Drivers
 Group:   System/X11
 Requires: %{name} = %{version}
 
-%description -n %libname
+%description -n %{libname}
 Libraries for managing the Wacom tablets.
 
-%package -n %libname-devel
+%package -n %{develname}
 Summary: Development libraries and header files for linuxwacom 
 Group: Development/C
 Requires: %{libname} = %{version}
-Provides: lib%{raw_libname}-devel = %{version}
+Provides: %{develname} = %{version}-%{release}
+Obsoletes: %{libname}0-devel
 
-%description -n %libname-devel
+%description -n %{develname}
 Development libraries and header files required for developing applications
 that manipulate Wacom tablets settings.
 
@@ -114,7 +117,7 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
 cat << EOF > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-wacomcpl.desktop
 [Desktop Entry]
 Encoding=UTF-8
-Categories=System;HardwareSettings;X-MandrivaLinux-System-Configuration-Hardware;
+Categories=System;HardwareSettings;
 Name=Wacom Control Panel
 Comment=Configuration tool for Wacom tablets
 Exec=wacomcpl
@@ -169,12 +172,12 @@ set -x
 %{_datadir}/applications/*
 %{tcl_sitearch}/TkXInput
 
-%files -n %libname
+%files -n %{libname}
 %defattr(-,root,root,-)
 %doc LGPL
-%{_libdir}/lib*so.*
+%{_libdir}/lib*so.%{major}*
 
-%files -n %libname-devel
+%files -n %{develname}
 %defattr(-,root,root,-)
 %{_includedir}/*
 %{_libdir}/lib*.a
