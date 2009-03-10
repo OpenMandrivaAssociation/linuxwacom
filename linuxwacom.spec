@@ -15,7 +15,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 2
+Release: %mkrel 3
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -38,7 +38,7 @@ Patch4: linuxwacom-0.8.2.2-export-module.patch
 Patch5: linuxwacom-0.8.2.2-wcmMaxX.patch
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
-BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel
+BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel hal-devel
 # needed for detection of input module path 
 BuildRequires: x11-driver-input-mouse
 
@@ -97,7 +97,7 @@ for latest Wacom tablets.
 %patch4 -p1 -b .export-module
 %patch5 -p1 -b .wcmMaxX
 
-#needed by patches 0 & 1
+#needed by patches 0, 1 & 3
 autoreconf -i 
 
 #restore original config.h.in file, upstream configure.in is badly
@@ -186,6 +186,7 @@ set -x
 %config(noreplace) %{_sysconfdir}/udev/rules.d/41-wacom.rules
 %{_datadir}/hal/fdi/policy/20thirdparty/10-linuxwacom.fdi
 %{_libdir}/xorg/modules/input/wacom_drv.*o
+%{_libdir}/hal-setup-wacom
 %{_bindir}/*dump
 %{_bindir}/xsetwacom
 %{_mandir}/man4/*
