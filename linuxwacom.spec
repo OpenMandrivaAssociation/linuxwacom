@@ -1,5 +1,5 @@
 %define version  0.8.3
-%define fversion 0.8.3-1
+%define fversion 0.8.3-2
 %define fname    %{name}-%{fversion}
 %define major 0
 %define raw_libname wacom
@@ -15,7 +15,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 2
+Release: %mkrel 3
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -23,13 +23,10 @@ URL:     http://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
 # create additional symlinks (Debian) and ensure wacom module is loaded before usbmouse
 Source1: 41-wacom.rules
-Source2: 10-linuxwacom.fdi
 # (fc) 0.8.0-1mdv fix build
 Patch0: linuxwacom-0.8.0-fixbuild.patch
-# (fc) 0.8.2-2mdv don't overwrite maxX with 0 (Fedora)
-Patch5: linuxwacom-0.8.2.2-wcmMaxX.patch
-# (fc) 0.8.3-1mdv fix build with hal
-Patch6: linuxwacom-0.8.3-fixbuildhal.patch
+# (fc) 0.8.3-3mdv add Waltop and N-Trig-Duosense devices to fdi file (Fedora)
+Patch1: linuxwacom-0.8.3-additionaldevices.patch
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel hal-devel
@@ -85,10 +82,9 @@ for latest Wacom tablets.
 %prep
 %setup -q -n %{fname}
 %patch0 -p1 -b .fixbuild
-%patch5 -p1 -b .wcmMaxX
-%patch6 -p1 -b .fixbuildhal
+%patch1 -p1 -b .additionaldevices
 
-#needed by patches 0 & 6
+#needed by patches 0 
 aclocal
 automake -a
 
@@ -101,9 +97,6 @@ automake -a
 rm -rf $RPM_BUILD_ROOT
 
 %makeinstall_std tcllibdir=%{tcl_sitearch}/TkXInput
-
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/hal/fdi/policy/20thirdparty
-install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{_datadir}/hal/fdi/policy/20thirdparty
 
 %__install -D -m644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/41-wacom.rules
 rm -f  $RPM_BUILD_ROOT%{_libdir}/*.la
