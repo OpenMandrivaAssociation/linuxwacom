@@ -1,5 +1,5 @@
 %define version  0.8.3
-%define fversion 0.8.3-2
+%define fversion 0.8.3-4
 %define fname    %{name}-%{fversion}
 %define major 0
 %define raw_libname wacom
@@ -15,7 +15,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 3
+Release: %mkrel 4
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
@@ -27,6 +27,8 @@ Source1: 41-wacom.rules
 Patch0: linuxwacom-0.8.0-fixbuild.patch
 # (fc) 0.8.3-3mdv add Waltop and N-Trig-Duosense devices to fdi file (Fedora)
 Patch1: linuxwacom-0.8.3-additionaldevices.patch
+# (fc) 0.8.3-4mdv fix usb driver to accept N-Trig (Rafi Rubin)
+Patch2: linuxwacom-0.8.3-ntrig.patch
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel hal-devel
@@ -83,10 +85,12 @@ for latest Wacom tablets.
 %setup -q -n %{fname}
 %patch0 -p1 -b .fixbuild
 %patch1 -p1 -b .additionaldevices
+%patch2 -p1 -b .ntrig
 
 #needed by patches 0 
 aclocal
-automake -a
+touch NEWS
+automake -a 
 
 %build
 %configure2_5x 
@@ -180,7 +184,6 @@ set -x
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%doc LGPL
 %{_libdir}/lib*so.%{major}*
 
 %files -n %{develname}
