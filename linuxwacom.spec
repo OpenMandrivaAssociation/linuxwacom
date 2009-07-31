@@ -1,5 +1,5 @@
-%define version  0.8.3
-%define fversion 0.8.3-4
+%define version  0.8.4
+%define fversion 0.8.4
 %define fname    %{name}-%{fversion}
 %define major 0
 %define raw_libname wacom
@@ -15,7 +15,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 5
+Release: %mkrel 1
 Summary: Tools to manage Wacom tablets
 License: LGPL
 Group:   System/X11
