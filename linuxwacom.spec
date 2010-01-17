@@ -15,9 +15,9 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 1
+Release: %mkrel 2
 Summary: Tools to manage Wacom tablets
-License: LGPL
+License: LGPLv2+ and GPLv2+
 Group:   System/X11
 URL:     http://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
@@ -29,7 +29,8 @@ Patch0: linuxwacom-0.8.0-fixbuild.patch
 Patch1: linuxwacom-0.8.3-additionaldevices.patch
 # (fc) 0.8.3-4mdv fix usb driver to accept N-Trig (Rafi Rubin)
 Patch2: linuxwacom-0.8.3-ntrig.patch
-
+Patch3: linuxwacom-0.8.2.2-xorg17-buildfix.patch
+Patch4: linuxwacom-8.2.2.2-xorg17-nokeysending.patch
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel hal-devel
 # needed for detection of input module path 
@@ -86,15 +87,13 @@ for latest Wacom tablets.
 %patch0 -p1 -b .fixbuild
 %patch1 -p1 -b .additionaldevices
 %patch2 -p1 -b .ntrig
-
-#needed by patches 0 
-aclocal
+%patch3 -p1
+%patch4 -p1 -b .nosend
 touch NEWS
-automake -a 
 
 %build
+autoreconf -fi
 %configure2_5x 
-
 %make
 
 %install
