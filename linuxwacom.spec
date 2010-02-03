@@ -15,7 +15,7 @@
 
 Name:    linuxwacom
 Version: %version
-Release: %mkrel 2
+Release: %mkrel 3
 Summary: Tools to manage Wacom tablets
 License: LGPLv2+ and GPLv2+
 Group:   System/X11
