@@ -1,0 +1,9 @@
+diff -p -up linuxwacom-0.8.0-3/src/wacomxi/Makefile.am.fixbuild linuxwacom-0.8.0-3/src/wacomxi/Makefile.am
+--- linuxwacom-0.8.0-3/src/wacomxi/Makefile.am.fixbuild	2008-09-01 17:27:02.000000000 +0200
++++ linuxwacom-0.8.0-3/src/wacomxi/Makefile.am	2008-09-01 17:31:19.000000000 +0200
+@@ -14,4 +14,4 @@ EXTRA_DIST = wacomcpl-exec
+ # Source dependencies
+ libwacomxi_la_SOURCES = wacomxi.c wacomxi.h
+ libwacomxi_la_LDFLAGS = -no-undefined
+-libwacomxi_la_LIBADD = @WCM_WACOMXI_LIBS@
++libwacomxi_la_LIBADD = -ltcl -ltk @WCM_WACOMXI_LIBS@

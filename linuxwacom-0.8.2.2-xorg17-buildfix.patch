@@ -1,0 +1,297 @@
+diff -Nru linuxwacom-0.8.3-5/src/xdrv/wcmCommon.c linuxwacom/src/xdrv/wcmCommon.c
+--- linuxwacom-0.8.3-5/src/xdrv/wcmCommon.c	2009-05-22 16:01:33.000000000 -0400
++++ linuxwacom/src/xdrv/wcmCommon.c	2009-06-19 14:43:05.000000000 -0400
+@@ -19,6 +19,7 @@
+ 
+ #include "xf86Wacom.h"
+ #include "../include/Xwacom.h"
++#include <X11/extensions/XKBsrv.h>
+ 
+ /*
+ #if XF86_VERSION_MAJOR < 4
+@@ -393,7 +394,7 @@
+ 	int i, j, alt_keysym = 0;
+ 
+ 	/* Now that we have the keycode look for key index */
+-	KeySymsRec *ksr = &keydev->key->curKeySyms;
++	KeySymsRec *ksr = keydev->key->xkbInfo->desc;
+ 
+ 	for (i = ksr->minKeyCode; i <= ksr->maxKeyCode; i++)
+ 		if (ksr->map [(i - ksr->minKeyCode) * ksr->mapWidth] == keysym)
+diff -Nru linuxwacom-0.8.3-5/src/xdrv/xf86Wacom.c linuxwacom/src/xdrv/xf86Wacom.c
+--- linuxwacom-0.8.3-5/src/xdrv/xf86Wacom.c	2009-05-22 16:01:33.000000000 -0400
++++ linuxwacom/src/xdrv/xf86Wacom.c	2009-06-19 14:43:05.000000000 -0400
+@@ -88,6 +88,11 @@
+ #include "xf86Wacom.h"
+ #include "wcmFilter.h"
+ 
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
++#include <X11/Xatom.h>
++#include <xserver-properties.h>
++#endif
++
+ static int xf86WcmDevOpen(DeviceIntPtr pWcm);
+ static void xf86WcmDevReadInput(LocalDevicePtr local);
+ static void xf86WcmDevControlProc(DeviceIntPtr device, PtrCtrl* ctrl);
+@@ -396,8 +401,11 @@
+ 		resolution = (int)((double)resolution * priv->factorX + 0.5);
+ #endif
+ 
+-		InitValuatorAxisStruct(local->dev, 0, topx, bottomx, 
+-			resolution, 0, resolution); 
++		InitValuatorAxisStruct(local->dev, 0,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X),
++#endif
++				topx, bottomx, resolution, 0, resolution);
+ 	}
+ 	else /* y ax */
+ 	{
+@@ -420,8 +428,11 @@
+ 		resolution = (int)((double)resolution * priv->factorY + 0.5);
+ #endif
+ 
+-		InitValuatorAxisStruct(local->dev, 1, topy, bottomy, 
+-			resolution, 0, resolution); 
++		InitValuatorAxisStruct(local->dev, 1,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y),
++#endif
++				topy, bottomy, resolution, 0, resolution); 
+ 	}
+ 	return;
+ }
+@@ -618,6 +629,32 @@
+ 	return;
+ }
+ 
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++static void xf86WcmInitButtonLabels(Atom *labels, int nlabels)
++{
++    memset(labels, 0, nlabels * sizeof(Atom));
++    switch(nlabels)
++    {
++        default:
++        case 7:
++            labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
++        case 6:
++            labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
++        case 5:
++            labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
++        case 4:
++            labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
++        case 3:
++            labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
++        case 2:
++            labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
++        case 1:
++            labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
++            break;
++    }
++}
++#endif
++
+ /*****************************************************************************
+  * xf86WcmRegisterX11Devices --
+  *    Register the X11 input devices with X11 core.
+@@ -630,6 +667,9 @@
+ 	CARD8 butmap[MAX_BUTTONS+1];
+ 	int nbaxes, nbbuttons, nbkeys;
+ 	int loop;
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++	Atom *axis_labels, *btn_labels;
++#endif
+ 
+ 	/* Detect tablet configuration, if possible */
+ 	if (priv->common->wcmModel->DetectConfig)
+@@ -645,6 +685,11 @@
+ 			            	     * nbbuttons = 0 while sending a beep 
+ 			             	     * This is only a workaround. 
+ 				     	     */
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++	axis_labels = xcalloc(nbaxes, sizeof(Atom));
++	btn_labels = xcalloc(nbbuttons, sizeof(Atom));
++	xf86WcmInitButtonLabels(btn_labels, nbbuttons);
++#endif
+ 
+ 	DBG(10, priv->debugLevel, ErrorF("xf86WcmRegisterX11Devices "
+ 		"(%s) %d buttons, %d keys, %d axes\n",
+@@ -656,8 +701,19 @@
+ 	for(loop=1; loop<=nbbuttons; loop++)
+ 		butmap[loop] = loop;
+ 
+-	if (InitButtonClassDeviceStruct(local->dev, nbbuttons, butmap) == FALSE)
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++	btn_labels = xcalloc(nbbuttons, sizeof(Atom));
++	xf86WcmInitButtonLabels(btn_labels, nbbuttons);
++#endif
++	if (InitButtonClassDeviceStruct(local->dev, nbbuttons,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				btn_labels,
++#endif
++				butmap) == FALSE)
+ 	{
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++		xfree(btn_labels);
++#endif
+ 		ErrorF("unable to allocate Button class device\n");
+ 		return FALSE;
+ 	}
+@@ -685,6 +741,9 @@
+ 		nbaxes = priv->naxes = 6;
+ 
+ 	if (InitValuatorClassDeviceStruct(local->dev, nbaxes,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++					  axis_labels,
++#endif
+ #if WCM_XINPUTABI_MAJOR == 0
+ 					  xf86GetMotionEvents,
+ 					  local->history_size,
+@@ -776,14 +835,25 @@
+ 	xf86WcmRotateTablet(local, common->wcmRotate);
+ 
+ 	/* pressure */
+-	InitValuatorAxisStruct(local->dev, 2, 0, 
+-		common->wcmMaxZ, 1, 1, 1);
++	InitValuatorAxisStruct(local->dev, 2,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_PRESSURE),
++#endif
++		       	0, common->wcmMaxZ, 1, 1, 1);
+ 
+ 	if (IsCursor(priv))
+ 	{
+ 		/* z-rot and throttle */
+-		InitValuatorAxisStruct(local->dev, 3, -900, 899, 1, 1, 1);
+-		InitValuatorAxisStruct(local->dev, 4, -1023, 1023, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 3,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_RZ),
++#endif
++				-900, 899, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 4,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_THROTTLE),
++#endif
++				-1023, 1023, 1, 1, 1);
+ 	}
+ 	else if (IsPad(priv))
+ 	{
+@@ -791,15 +861,31 @@
+ 		if (strstr(common->wcmModel->name, "Intuos3") || 
+ 			strstr(common->wcmModel->name, "CintiqV5")) 
+ 		{
+-			InitValuatorAxisStruct(local->dev, 3, 0, common->wcmMaxStripX, 1, 1, 1);
+-			InitValuatorAxisStruct(local->dev, 4, 0, common->wcmMaxStripY, 1, 1, 1);
++			InitValuatorAxisStruct(local->dev, 3,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_HAT0X), // TODO
++#endif
++					0, common->wcmMaxStripX, 1, 1, 1);
++			InitValuatorAxisStruct(local->dev, 4,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_HAT0Y), // TODO
++#endif
++					0, common->wcmMaxStripY, 1, 1, 1);
+ 		}
+ 	}
+ 	else
+ 	{
+ 		/* tilt-x and tilt-y */
+-		InitValuatorAxisStruct(local->dev, 3, -64, 63, 1, 1, 1);
+-		InitValuatorAxisStruct(local->dev, 4, -64, 63, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 3,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_TILT_X),
++#endif
++				-64, 63, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 4,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_TILT_Y),
++#endif
++				-64, 63, 1, 1, 1);
+ 	}
+ 
+ 	if ((strstr(common->wcmModel->name, "Intuos3") || 
+@@ -807,16 +893,28 @@
+ 		strstr(common->wcmModel->name, "Intuos4")) 
+ 			&& IsStylus(priv))
+ 		/* Art Marker Pen rotation */
+-		InitValuatorAxisStruct(local->dev, 5, -900, 899, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 5,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_RZ), // TODO
++#endif
++				-900, 899, 1, 1, 1);
+ 	else if ((strstr(common->wcmModel->name, "Bamboo") ||
+ 		strstr(common->wcmModel->name, "Intuos4"))
+ 			&& IsPad(priv))
+ 		/* Touch ring */
+-		InitValuatorAxisStruct(local->dev, 5, 0, 71, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 5,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_MISC), // TODO
++#endif
++				0, 71, 1, 1, 1);
+ 	else
+ 	{
+ 		/* absolute wheel */
+-		InitValuatorAxisStruct(local->dev, 5, 0, 1023, 1, 1, 1);
++		InitValuatorAxisStruct(local->dev, 5,
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++				XIGetKnownProperty(AXIS_LABEL_PROP_ABS_WHEEL),
++#endif
++				0, 1023, 1, 1, 1);
+ 	}
+ 
+ 	if (IsTouch(priv))
+--- linuxwacom-0.8.3-5/src/xdrv/xf86Wacom.c	2009-06-22 12:16:42.000000000 -0400
++++ linuxwacom/src/xdrv/xf86Wacom.c	2009-06-22 12:09:09.000000000 -0400
+@@ -438,6 +438,7 @@
+ }
+ 
+ #ifdef WCM_KEY_SENDING_SUPPORT
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 7
+ /*****************************************************************************
+  * xf86WcmRegisterX11Devices --
+  *    Register the X11 input devices with X11 core.
+@@ -585,6 +586,7 @@
+ 	{ XK_Mode_switch,	Mod3Mask }, /*AltMask*/
+ 	{ NoSymbol,	0 }
+ };
++#endif
+ #endif /* WCM_KEY_SENDING_SUPPORT */
+ 
+ /*****************************************************************************
+@@ -768,6 +770,7 @@
+ #ifdef WCM_KEY_SENDING_SUPPORT
+ 		if (nbkeys)
+ 		{
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 7
+ 			KeySymsRec wacom_keysyms;
+ 			CARD8 modmap[MAP_LENGTH];
+ 			int i,j;
+@@ -798,6 +801,9 @@
+ 			wacom_keysyms.maxKeyCode = 255;
+ 			wacom_keysyms.mapWidth = 2;
+ 			if (InitKeyClassDeviceStruct(local->dev, &wacom_keysyms, modmap) == FALSE)
++#else
++			if (!InitKeyboardDeviceStruct(local->dev, NULL, xf86WcmBellCallback, xf86WcmKbdCtrlCallback))
++#endif
+ 			{
+ 				ErrorF("unable to init key class device\n");
+ 				return FALSE;
+@@ -805,11 +811,13 @@
+ 		}
+ 
+ #ifndef WCM_XFREE86
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 7
+ 		if(InitKbdFeedbackClassDeviceStruct(local->dev, xf86WcmBellCallback,
+ 				xf86WcmKbdCtrlCallback) == FALSE) {
+ 			ErrorF("unable to init kbd feedback device struct\n");
+ 			return FALSE;
+ 		}
++#endif
+ 
+ 		if(InitLedFeedbackClassDeviceStruct (local->dev, xf86WcmKbdLedCallback) == FALSE) {
+ 			ErrorF("unable to init led feedback device struct\n");

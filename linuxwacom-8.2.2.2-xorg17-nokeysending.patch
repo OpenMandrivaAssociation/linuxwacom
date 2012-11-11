@@ -1,0 +1,19 @@
+--- linuxwacom-0.8.4/src/xdrv/xf86Wacom.h.nosend	2009-07-30 23:30:03.000000000 +0200
++++ linuxwacom-0.8.4/src/xdrv/xf86Wacom.h	2010-01-17 21:44:39.000000000 +0100
+@@ -26,11 +26,16 @@
+ #ifdef WCM_XORG_XSERVER_1_6
+    #include <xorg-server.h>
+    #include <xorgVersion.h>
++   #include <xf86Module.h>
+ #else
+    #include <xf86Version.h>
+ #endif
+ #include "../include/Xwacom.h"
+ 
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
++#undef WCM_KEY_SENDING_SUPPORT
++#endif
++
+ /*****************************************************************************
+  * Linux Input Support
+  ****************************************************************************/

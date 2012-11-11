@@ -1,0 +1,47 @@
+From 02fa1b64c05f10185a77e1e46252605ac1548cce Mon Sep 17 00:00:00 2001
+From: Frederic Crozat <fcrozat@mandriva.com>
+Date: Tue, 21 Apr 2009 17:28:22 +0200
+Subject: [PATCH] add Waltop and N-Trig Duosense devices
+
+---
+ src/util/10-linuxwacom.fdi |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/src/util/10-linuxwacom.fdi b/src/util/10-linuxwacom.fdi
+index ecb88cd..4870757 100644
+--- a/src/util/10-linuxwacom.fdi
++++ b/src/util/10-linuxwacom.fdi
+@@ -3,7 +3,7 @@
+ <deviceinfo version="0.2">
+   <device>
+     <match key="info.category" contains="input">
+-      <match key="info.product" contains_outof="Wacom">
++      <match key="info.product" contains_outof="Wacom;WALTOP">
+ 	<merge key="input.x11_driver" type="string">wacom</merge>
+ 	<merge key="input.x11_options.Type" type="string">stylus</merge>
+ 	<append key="info.callouts.add" type="strlist">hal-setup-wacom</append>
+@@ -27,6 +27,15 @@
+ 	</match>
+       </match>
+     </match>
++    <!-- N-Trig Duosense Electromagnetic Digitizer -->
++    <match key="info.product" contains="HID 1b96:0001">
++      <match key="info.parent" contains="if0">
++        <match key="info.subsystem" contains="input">
++         <merge key="input.x11_driver" type="string">wacom</merge>
++         <merge key="input.x11_options.Type" type="string">stylus</merge>
++        </match>
++      </match>
++    </match>
+   </device>
+   <!-- Match the Wacom Bluetooth A5 pen tablet -->
+   <device>
+@@ -43,5 +52,3 @@
+     </match>
+   </device>
+ </deviceinfo>
+-
+-
+-- 
+1.6.2.4
+

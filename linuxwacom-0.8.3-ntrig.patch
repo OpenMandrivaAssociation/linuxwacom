@@ -1,0 +1,30 @@
+--- linuxwacom-dev/src/xdrv/wcmUSB.c	2009-05-08 04:38:23.974349447 -0400
++++ linuxwacom-dev.patched/src/xdrv/wcmUSB.c	2009-05-08 04:38:17.712127356 -0400
+@@ -507,7 +507,8 @@
+ 
+ 	{ 0x90, 2540, 2540, &usbTabletPC   }, /* TabletPC 0x90 */ 
+ 	{ 0x93, 2540, 2540, &usbTabletPC   }, /* TabletPC 0x93 */
+-	{ 0x9A, 2540, 2540, &usbTabletPC   }  /* TabletPC 0x9A */
++	{ 0x9A, 2540, 2540, &usbTabletPC   },  /* TabletPC 0x9A */
++	{ 0x1, 935, 1122, &usbTabletPC   }  /* N-Trig */
+ };
+ 
+ Bool usbWcmInit(LocalDevicePtr local, char* id, float *version)
+@@ -526,7 +527,7 @@
+ 	ioctl(local->fd, EVIOCGNAME(sizeof(id)), id);
+ 
+ 	/* vendor is wacom */
+-	if (sID[1] == 0x056A)
++	if (sID[1] == 0x056A || sID[1] == 0x1b96)
+ 	{
+ 		common->tablet_id = sID[2];
+ 
+@@ -549,7 +550,7 @@
+ 			common->wcmCapacityDefault = -1; 
+ 		}
+ 
+-		if (common->tablet_id == 0x9A || common->tablet_id == 0x93 || common->tablet_id == 0x90)
++		if (common->tablet_id == 0x9A || common->tablet_id == 0x93 || common->tablet_id == 0x90 || common->tablet_id==1)
+ 		{
+ 			if (common->tablet_id != 0x90)
+ 			{
