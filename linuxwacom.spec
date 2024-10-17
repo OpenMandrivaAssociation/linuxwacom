@@ -19,7 +19,7 @@ Release: %mkrel 3
 Summary: Tools to manage Wacom tablets
 License: LGPLv2+ and GPLv2+
 Group:   System/X11
-URL:     http://linuxwacom.sourceforge.net
+URL:     https://linuxwacom.sourceforge.net
 Source0: http://prdownloads.sourceforge.net/linuxwacom/%{fname}.tar.bz2
 # create additional symlinks (Debian) and ensure wacom module is loaded before usbmouse
 Source1: 41-wacom.rules
