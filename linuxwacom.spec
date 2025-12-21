@@ -32,6 +32,11 @@ Patch2: linuxwacom-0.8.3-ntrig.patch
 Patch3: linuxwacom-0.8.2.2-xorg17-buildfix.patch
 Patch4: linuxwacom-8.2.2.2-xorg17-nokeysending.patch
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires: X11-devel, libxi-devel, x11-server-devel, ncurses-devel hal-devel
 # needed for detection of input module path 
 BuildRequires: x11-driver-input-mouse
